@@ -633,40 +633,74 @@
                     // Get the quality value
                     const quality = parseInt(qualitySlider.value) / 100;
                     
-                    // Convert to the selected format
-                    let mimeType;
-                    switch(selectedFormat) {
-                        case 'jpg': mimeType = 'image/jpeg'; break;
-                        case 'png': mimeType = 'image/png'; break;
-                        case 'webp': mimeType = 'image/webp'; break;
-                        case 'gif': mimeType = 'image/gif'; break;
-                        case 'bmp': mimeType = 'image/bmp'; break;
-                        case 'ico': mimeType = 'image/x-icon'; break;
-                        case 'tiff': mimeType = 'image/tiff'; break;
-                        case 'svg': mimeType = 'image/svg+xml'; break;
-                        case 'avif': mimeType = 'image/avif'; break;
-                        case 'heic': mimeType = 'image/heic'; break;
-                        case 'pdf': mimeType = 'application/pdf'; break;
-                        case 'eps': mimeType = 'application/postscript'; break;
-                        case 'raw': mimeType = 'image/x-dcraw'; break;
-                        case 'psd': mimeType = 'image/vnd.adobe.photoshop'; break;
-                        case 'ai': mimeType = 'application/illustrator'; break;
-                        default: mimeType = 'image/jpeg';
-                    }
-                    
-                    // For formats that don't support quality parameter
-                    if (['png', 'bmp', 'ico', 'tiff', 'svg', 'avif', 'heic', 'pdf', 'eps', 'raw', 'psd', 'ai'].includes(selectedFormat)) {
-                        canvas.toBlob((blob) => {
-                            convertedBlob = blob;
-                            completeConversion();
-                        }, mimeType);
+                    // Handle PDF conversion differently
+                    if (selectedFormat === 'pdf') {
+                        convertToPDF(canvas, quality);
                     } else {
-                        canvas.toBlob((blob) => {
-                            convertedBlob = blob;
-                            completeConversion();
-                        }, mimeType, quality);
+                        // Convert to other image formats
+                        let mimeType;
+                        switch(selectedFormat) {
+                            case 'jpg': mimeType = 'image/jpeg'; break;
+                            case 'png': mimeType = 'image/png'; break;
+                            case 'webp': mimeType = 'image/webp'; break;
+                            case 'gif': mimeType = 'image/gif'; break;
+                            case 'bmp': mimeType = 'image/bmp'; break;
+                            case 'ico': mimeType = 'image/x-icon'; break;
+                            case 'tiff': mimeType = 'image/tiff'; break;
+                            case 'svg': mimeType = 'image/svg+xml'; break;
+                            case 'avif': mimeType = 'image/avif'; break;
+                            case 'heic': mimeType = 'image/heic'; break;
+                            case 'eps': mimeType = 'application/postscript'; break;
+                            case 'raw': mimeType = 'image/x-dcraw'; break;
+                            case 'psd': mimeType = 'image/vnd.adobe.photoshop'; break;
+                            case 'ai': mimeType = 'application/illustrator'; break;
+                            default: mimeType = 'image/jpeg';
+                        }
+                        
+                        // For formats that don't support quality parameter
+                        if (['png', 'bmp', 'ico', 'tiff', 'svg', 'avif', 'heic', 'eps', 'raw', 'psd', 'ai'].includes(selectedFormat)) {
+                            canvas.toBlob((blob) => {
+                                convertedBlob = blob;
+                                completeConversion();
+                            }, mimeType);
+                        } else {
+                            canvas.toBlob((blob) => {
+                                convertedBlob = blob;
+                                completeConversion();
+                            }, mimeType, quality);
+                        }
                     }
                 }, 1500);
+            }
+            
+            // Convert to PDF function
+            function convertToPDF(canvas, quality) {
+                // Create a new jsPDF instance
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF();
+                
+                // Get image data from canvas
+                const imgData = canvas.toDataURL('image/jpeg', quality);
+                
+                // Calculate dimensions to fit the PDF page
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+                
+                // Calculate aspect ratio
+                const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+                const width = imgWidth * ratio;
+                const height = imgHeight * ratio;
+                
+                // Add image to PDF
+                pdf.addImage(imgData, 'JPEG', (pdfWidth - width) / 2, (pdfHeight - height) / 2, width, height);
+                
+                // Generate PDF blob
+                const pdfBlob = pdf.output('blob');
+                convertedBlob = pdfBlob;
+                
+                completeConversion();
             }
             
             // Complete conversion
@@ -713,5 +747,7 @@
             initFormatGrid();
         });
     </script>
+    <!-- Add jsPDF library for PDF conversion -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </body>
 </html>
