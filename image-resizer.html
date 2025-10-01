@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Resizer Tool</title>
+    <style>
+        /* CSS Variables for Theme */
+        :root {
+            --bg: #0f0820;
+            --gradient-start: #24103f;
+            --gradient-end: #4b1f7a;
+            --card-bg: rgba(255,255,255,0.05);
+            --accent: #9B7BFF;
+            --secondary-accent: #FFD966;
+            --text: #E4E4E4;
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        /* Typography */
+        h1, h2, h3 {
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        h1 {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            background: linear-gradient(to right, var(--accent), var(--secondary-accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.8rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: var(--transition);
+            margin-bottom: 1.5rem;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .grid {
+                grid-template-columns: 1fr 2fr;
+            }
+        }
+
+        /* Form Elements */
+        input, select, button, textarea {
+            font-family: inherit;
+            font-size: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.2);
+            color: var(--text);
+            transition: var(--transition);
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(155, 123, 255, 0.2);
+        }
+
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            background: #8a6cff;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: transparent;
+            border: 1px solid var(--accent);
+        }
+
+        button.secondary:hover {
+            background: rgba(155, 123, 255, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .button-group button {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        /* File Upload Area */
+        .upload-area {
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+
+        .upload-area:hover, .upload-area.drag-over {
+            border-color: var(--accent);
+            background: rgba(155, 123, 255, 0.05);
+        }
+
+        .upload-area i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        /* Preview Area */
+        .preview-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        #previewCanvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: var(--border-radius);
+            background: rgba(0,0,0,0.2);
+            display: block;
+            margin: 0 auto;
+        }
+
+        .image-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Thumbnail Gallery */
+        .thumbnail-gallery {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .thumbnail {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: var(--transition);
+        }
+
+        .thumbnail:hover {
+            border-color: var(--accent);
+        }
+
+        .thumbnail.active {
+            border-color: var(--secondary-accent);
+        }
+
+        /* Controls */
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .control-row > * {
+            flex: 1;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .checkbox-group input {
+            width: auto;
+            margin-bottom: 0;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin: 1rem 0;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Results */
+        .result-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .result-actions button {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        /* Batch Results */
+        .batch-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .batch-result-item {
+            background: rgba(0,0,0,0.2);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .batch-result-thumb {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text);
+            cursor: pointer;
+            width: auto;
+            padding: 0;
+        }
+
+        /* Utility Classes */
+        .text-center {
+            text-align: center;
+        }
+
+        .text-small {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .mt-1 {
+            margin-top: 1rem;
+        }
+
+        .mb-1 {
+            margin-bottom: 1rem;
+        }
+
+        /* Icons (using Unicode as fallback) */
+        .icon {
+            font-style: normal;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 767px) {
+            .control-row {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .button-group button {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Image Resizer Tool</h1>
+        </header>
+
+        <main class="grid">
+            <!-- Left Column: Input & Controls -->
+            <div class="left-column">
+                <!-- Image Input Section -->
+                <section class="card">
+                    <h2>Upload Image</h2>
+                    
+                    <!-- File Upload -->
+                    <div class="upload-area" id="uploadArea">
+                        <div class="icon">📁</div>
+                        <h3>Drag & Drop Images Here</h3>
+                        <p class="text-small">or click to browse files</p>
+                        <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+                    </div>
+                    
+                    <!-- URL Input -->
+                    <div class="control-group">
+                        <label for="urlInput">Or enter image URL:</label>
+                        <input type="url" id="urlInput" placeholder="https://example.com/image.jpg">
+                        <button id="loadUrlBtn">Load from URL</button>
+                    </div>
+                    
+                    <!-- Batch Info -->
+                    <div id="batchInfo" class="hidden">
+                        <p class="text-small">Multiple images selected. Use thumbnails below to select which image to edit.</p>
+                        <div class="thumbnail-gallery" id="thumbnailGallery"></div>
+                    </div>
+                </section>
+
+                <!-- Resize Controls -->
+                <section class="card">
+                    <h2>Resize Settings</h2>
+                    
+                    <!-- Preset Sizes -->
+                    <div class="control-group">
+                        <label for="presetSelect">Preset Sizes:</label>
+                        <select id="presetSelect">
+                            <option value="custom">Custom Size</option>
+                            <optgroup label="Facebook">
+                                <option value="1080x1920">Story (1080 × 1920)</option>
+                                <option value="820x312">Cover Photo (820 × 312)</option>
+                                <option value="180x180">Profile Picture (180 × 180)</option>
+                            </optgroup>
+                            <optgroup label="Instagram">
+                                <option value="1080x1920">Story (1080 × 1920)</option>
+                                <option value="1080x1080">Square Post (1080 × 1080)</option>
+                                <option value="1080x1350">Vertical Post (1080 × 1350)</option>
+                            </optgroup>
+                            <!-- More presets would be added here -->
+                        </select>
+                    </div>
+                    
+                    <!-- Custom Dimensions -->
+                    <div class="control-group">
+                        <div class="control-row">
+                            <div>
+                                <label for="widthInput">Width (px):</label>
+                                <input type="number" id="widthInput" min="1" placeholder="Width">
+                            </div>
+                            <div>
+                                <label for="heightInput">Height (px):</label>
+                                <input type="number" id="heightInput" min="1" placeholder="Height">
+                            </div>
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="maintainAspect" checked>
+                            <label for="maintainAspect">Maintain Aspect Ratio</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Quality Settings -->
+                    <div class="control-group">
+                        <label for="qualitySelect">Resize Quality:</label>
+                        <select id="qualitySelect">
+                            <option value="high">High Quality (bicubic)</option>
+                            <option value="medium" selected>Balanced</option>
+                            <option value="low">Fast</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Output Format -->
+                    <div class="control-group">
+                        <label for="formatSelect">Output Format:</label>
+                        <select id="formatSelect">
+                            <option value="image/jpeg">JPEG</option>
+                            <option value="image/png">PNG</option>
+                            <option value="image/webp">WebP</option>
+                        </select>
+                    </div>
+                    
+                    <!-- JPEG Quality Slider -->
+                    <div id="jpegQualityGroup" class="control-group">
+                        <label for="jpegQuality">JPEG Quality: <span id="jpegQualityValue">0.8</span></label>
+                        <input type="range" id="jpegQuality" min="0.1" max="1" step="0.1" value="0.8">
+                    </div>
+                    
+                    <!-- Resize Actions -->
+                    <div class="button-group">
+                        <button id="applyResizeBtn">Apply Resize</button>
+                        <button id="resetBtn" class="secondary">Reset to Original</button>
+                        <button id="applyToAllBtn" class="secondary hidden">Apply to All</button>
+                    </div>
+                </section>
+
+                <!-- Transformations -->
+                <section class="card">
+                    <h2>Transformations</h2>
+                    
+                    <!-- Rotate -->
+                    <div class="control-group">
+                        <h3>Rotate</h3>
+                        <div class="button-group">
+                            <button id="rotateLeftBtn">↶ 90°</button>
+                            <button id="rotateRightBtn">↷ 90°</button>
+                        </div>
+                        
+                        <div class="control-row">
+                            <input type="number" id="customRotate" placeholder="Custom degrees" min="-360" max="360">
+                            <button id="applyRotateBtn">Apply</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Flip -->
+                    <div class="control-group">
+                        <h3>Flip</h3>
+                        <div class="button-group">
+                            <button id="flipHorizontalBtn">Flip Horizontal</button>
+                            <button id="flipVerticalBtn">Flip Vertical</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column: Preview & Results -->
+            <div class="right-column">
+                <!-- Preview Section -->
+                <section class="card">
+                    <h2>Preview</h2>
+                    
+                    <div class="preview-container">
+                        <canvas id="previewCanvas"></canvas>
+                        <div class="image-info">
+                            <span id="originalSize">Original: -</span>
+                            <span id="previewSize">Preview: -</span>
+                        </div>
+                    </div>
+                    
+                    <div id="noImageMessage" class="text-center">
+                        <p>Upload or paste an image to get started</p>
+                    </div>
+                </section>
+
+                <!-- Results Section -->
+                <section class="card">
+                    <h2>Results</h2>
+                    
+                    <div id="resultInfo" class="hidden">
+                        <div class="image-info">
+                            <span id="resultDimensions">Dimensions: -</span>
+                            <span id="resultFileSize">File Size: -</span>
+                        </div>
+                        
+                        <div class="result-actions">
+                            <button id="downloadBtn">Download</button>
+                            <button id="copyBtn">Copy to Clipboard</button>
+                            <button id="openTabBtn">Open in New Tab</button>
+                            <button id="useResultBtn">Use Result</button>
+                        </div>
+                    </div>
+                    
+                    <div id="batchResults" class="hidden">
+                        <h3>Batch Results</h3>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="batchProgress"></div>
+                            </div>
+                            <p class="text-small text-center" id="batchProgressText">Processing 0 of 0</p>
+                        </div>
+                        <div class="batch-results" id="batchResultsList"></div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Help Modal -->
+        <div id="helpModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>How to Use</h2>
+                    <button class="close-modal">&times;</button>
+                </div>
+                
+                <h3>Image Input Methods</h3>
+                <ul>
+                    <li>Drag and drop images onto the upload area</li>
+                    <li>Click the upload area to browse for files</li>
+                    <li>Paste an image from clipboard (Ctrl+V)</li>
+                    <li>Enter a URL to load a remote image</li>
+                </ul>
+                
+                <h3>Keyboard Shortcuts</h3>
+                <ul>
+                    <li><kbd>R</kbd> - Rotate 90° clockwise</li>
+                    <li><kbd>F</kbd> - Flip horizontally</li>
+                    <li><kbd>Ctrl/Cmd + D</kbd> - Download current image</li>
+                </ul>
+                
+                <h3>Tips</h3>
+                <ul>
+                    <li>Keep "Maintain Aspect Ratio" checked to avoid distortion</li>
+                    <li>Use presets for common social media sizes</li>
+                    <li>For multiple images, use "Apply to All" to batch process</li>
+                </ul>
+                
+                <div class="text-center mt-1">
+                    <button class="close-modal">Got it!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Image Resizer Tool
+        // Author: AI Assistant
+        // Date: 2023
+        // Features: Image upload, resize, transform, batch processing, multiple export options
+        
+        // Global state
+        const state = {
+            images: [], // Array of loaded images
+            currentImageIndex: 0, // Index of currently selected image
+            originalImage: null, // Original image data for reset
+            transformations: {
+                rotation: 0,
+                flipHorizontal: false,
+                flipVertical: false
+            },
+            settings: {
+                maintainAspectRatio: true,
+                quality: 'medium',
+                format: 'image/jpeg',
+                jpegQuality: 0.8
+            },
+            maxFileSize: 5 * 1024 * 1024, // 5MB
+            maxBatchSize: 20
+        };
+
+        // DOM Elements
+        const elements = {
+            // Input
+            uploadArea: document.getElementById('uploadArea'),
+            fileInput: document.getElementById('fileInput'),
+            urlInput: document.getElementById('urlInput'),
+            loadUrlBtn: document.getElementById('loadUrlBtn'),
+            
+            // Preview
+            previewCanvas: document.getElementById('previewCanvas'),
+            noImageMessage: document.getElementById('noImageMessage'),
+            originalSize: document.getElementById('originalSize'),
+            previewSize: document.getElementById('previewSize'),
+            
+            // Batch
+            batchInfo: document.getElementById('batchInfo'),
+            thumbnailGallery: document.getElementById('thumbnailGallery'),
+            applyToAllBtn: document.getElementById('applyToAllBtn'),
+            
+            // Resize controls
+            presetSelect: document.getElementById('presetSelect'),
+            widthInput: document.getElementById('widthInput'),
+            heightInput: document.getElementById('heightInput'),
+            maintainAspect: document.getElementById('maintainAspect'),
+            qualitySelect: document.getElementById('qualitySelect'),
+            formatSelect: document.getElementById('formatSelect'),
+            jpegQualityGroup: document.getElementById('jpegQualityGroup'),
+            jpegQuality: document.getElementById('jpegQuality'),
+            jpegQualityValue: document.getElementById('jpegQualityValue'),
+            
+            // Actions
+            applyResizeBtn: document.getElementById('applyResizeBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            
+            // Transformations
+            rotateLeftBtn: document.getElementById('rotateLeftBtn'),
+            rotateRightBtn: document.getElementById('rotateRightBtn'),
+            customRotate: document.getElementById('customRotate'),
+            applyRotateBtn: document.getElementById('applyRotateBtn'),
+            flipHorizontalBtn: document.getElementById('flipHorizontalBtn'),
+            flipVerticalBtn: document.getElementById('flipVerticalBtn'),
+            
+            // Results
+            resultInfo: document.getElementById('resultInfo'),
+            resultDimensions: document.getElementById('resultDimensions'),
+            resultFileSize: document.getElementById('resultFileSize'),
+            downloadBtn: document.getElementById('downloadBtn'),
+            copyBtn: document.getElementById('copyBtn'),
+            openTabBtn: document.getElementById('openTabBtn'),
+            useResultBtn: document.getElementById('useResultBtn'),
+            
+            // Batch results
+            batchResults: document.getElementById('batchResults'),
+            batchProgress: document.getElementById('batchProgress'),
+            batchProgressText: document.getElementById('batchProgressText'),
+            batchResultsList: document.getElementById('batchResultsList'),
+            
+            // Modal
+            helpModal: document.getElementById('helpModal')
+        };
+
+        // Initialize the application
+        function init() {
+            // Load saved settings from localStorage
+            loadSettings();
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Set up canvas context
+            setupCanvas();
+            
+            // Update UI based on initial state
+            updateUI();
+        }
+
+        // Load settings from localStorage
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('imageResizerSettings');
+            if (savedSettings) {
+                const settings = JSON.parse(savedSettings);
+                Object.assign(state.settings, settings);
+                
+                // Update UI to reflect saved settings
+                elements.maintainAspect.checked = state.settings.maintainAspectRatio;
+                elements.qualitySelect.value = state.settings.quality;
+                elements.formatSelect.value = state.settings.format;
+                elements.jpegQuality.value = state.settings.jpegQuality;
+                elements.jpegQualityValue.textContent = state.settings.jpegQuality;
+                
+                // Show/hide JPEG quality based on format
+                toggleJpegQuality();
+            }
+        }
+
+        // Save settings to localStorage
+        function saveSettings() {
+            localStorage.setItem('imageResizerSettings', JSON.stringify(state.settings));
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // File input
+            elements.uploadArea.addEventListener('click', () => elements.fileInput.click());
+            elements.fileInput.addEventListener('change', handleFileSelect);
+            
+            // Drag and drop
+            elements.uploadArea.addEventListener('dragover', handleDragOver);
+            elements.uploadArea.addEventListener('dragleave', handleDragLeave);
+            elements.uploadArea.addEventListener('drop', handleDrop);
+            
+            // URL input
+            elements.loadUrlBtn.addEventListener('click', loadImageFromUrl);
+            elements.urlInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') loadImageFromUrl();
+            });
+            
+            // Clipboard paste
+            document.addEventListener('paste', handlePaste);
+            
+            // Resize controls
+            elements.presetSelect.addEventListener('change', handlePresetSelect);
+            elements.widthInput.addEventListener('input', handleDimensionChange);
+            elements.heightInput.addEventListener('input', handleDimensionChange);
+            elements.maintainAspect.addEventListener('change', handleMaintainAspectChange);
+            elements.qualitySelect.addEventListener('change', handleQualityChange);
+            elements.formatSelect.addEventListener('change', handleFormatChange);
+            elements.jpegQuality.addEventListener('input', handleJpegQualityChange);
+            
+            // Action buttons
+            elements.applyResizeBtn.addEventListener('click', applyResize);
+            elements.resetBtn.addEventListener('click', resetImage);
+            elements.applyToAllBtn.addEventListener('click', applyToAll);
+            
+            // Transformation buttons
+            elements.rotateLeftBtn.addEventListener('click', () => rotateImage(-90));
+            elements.rotateRightBtn.addEventListener('click', () => rotateImage(90));
+            elements.applyRotateBtn.addEventListener('click', applyCustomRotate);
+            elements.flipHorizontalBtn.addEventListener('click', () => flipImage('horizontal'));
+            elements.flipVerticalBtn.addEventListener('click', () => flipImage('vertical'));
+            
+            // Result buttons
+            elements.downloadBtn.addEventListener('click', downloadImage);
+            elements.copyBtn.addEventListener('click', copyToClipboard);
+            elements.openTabBtn.addEventListener('click', openInNewTab);
+            elements.useResultBtn.addEventListener('click', useResult);
+            
+            // Modal
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', () => elements.helpModal.style.display = 'none');
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', handleKeyboardShortcuts);
+            
+            // Save settings when they change
+            elements.maintainAspect.addEventListener('change', saveSettings);
+            elements.qualitySelect.addEventListener('change', saveSettings);
+            elements.formatSelect.addEventListener('change', saveSettings);
+            elements.jpegQuality.addEventListener('change', saveSettings);
+        }
+
+        // Set up canvas context with proper smoothing
+        function setupCanvas() {
+            const canvas = elements.previewCanvas;
+            const ctx = canvas.getContext('2d');
+            
+            // Set image smoothing based on quality setting
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = state.settings.quality;
+        }
+
+        // Handle file selection
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                processFiles(files);
+            }
+        }
+
+        // Handle drag over event
+        function handleDragOver(e) {
+            e.preventDefault();
+            elements.uploadArea.classList.add('drag-over');
+        }
+
+        // Handle drag leave event
+        function handleDragLeave(e) {
+            e.preventDefault();
+            elements.uploadArea.classList.remove('drag-over');
+        }
+
+        // Handle drop event
+        function handleDrop(e) {
+            e.preventDefault();
+            elements.uploadArea.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                processFiles(files);
+            }
+        }
+
+        // Handle paste event
+        function handlePaste(e) {
+            const items = e.clipboardData?.items;
+            if (!items) return;
+            
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    const file = items[i].getAsFile();
+                    processFiles([file]);
+                    break;
+                }
+            }
+        }
+
+        // Process uploaded files
+        function processFiles(files) {
+            // Check batch size limit
+            if (files.length > state.maxBatchSize) {
+                alert(`Maximum ${state.maxBatchSize} images allowed. Only the first ${state.maxBatchSize} will be processed.`);
+                files = Array.from(files).slice(0, state.maxBatchSize);
+            }
+            
+            // Clear existing images if this is a new batch
+            if (state.images.length === 0) {
+                state.images = [];
+            }
+            
+            // Process each file
+            let processedCount = 0;
+            const totalFiles = files.length;
+            
+            Array.from(files).forEach(file => {
+                // Check file type
+                if (!file.type.match('image.*')) {
+                    alert(`File ${file.name} is not an image.`);
+                    return;
+                }
+                
+                // Check file size
+                if (file.size > state.maxFileSize) {
+                    alert(`File ${file.name} exceeds maximum size of ${state.maxFileSize / (1024 * 1024)}MB.`);
+                    return;
+                }
+                
+                // Create image object and load
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        state.images.push({
+                            file: file,
+                            original: img,
+                            current: img,
+                            transformations: {...state.transformations},
+                            name: file.name,
+                            type: file.type,
+                            originalWidth: img.width,
+                            originalHeight: img.height
+                        });
+                        
+                        processedCount++;
+                        
+                        // If all files processed, update UI
+                        if (processedCount === totalFiles) {
+                            state.currentImageIndex = state.images.length - 1;
+                            updateUI();
+                            updateThumbnails();
+                            drawPreview();
+                        }
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Load image from URL
+        function loadImageFromUrl() {
+            const url = elements.urlInput.value.trim();
+            if (!url) return;
+            
+            // Show loading state
+            elements.loadUrlBtn.textContent = 'Loading...';
+            elements.loadUrlBtn.disabled = true;
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    // Check file size
+                    if (blob.size > state.maxFileSize) {
+                        throw new Error(`Image exceeds maximum size of ${state.maxFileSize / (1024 * 1024)}MB.`);
+                    }
+                    
+                    // Create file from blob
+                    const file = new File([blob], 'image-from-url', { type: blob.type });
+                    processFiles([file]);
+                    elements.urlInput.value = '';
+                })
+                .catch(error => {
+                    console.error('Error loading image from URL:', error);
+                    alert(`Failed to load image: ${error.message}`);
+                })
+                .finally(() => {
+                    // Reset button state
+                    elements.loadUrlBtn.textContent = 'Load from URL';
+                    elements.loadUrlBtn.disabled = false;
+                });
+        }
+
+        // Handle preset selection
+        function handlePresetSelect() {
+            const preset = elements.presetSelect.value;
+            if (preset === 'custom') return;
+            
+            const [width, height] = preset.split('x').map(Number);
+            elements.widthInput.value = width;
+            elements.heightInput.value = height;
+            
+            // Apply resize immediately if we have an image
+            if (state.images.length > 0) {
+                applyResize();
+            }
+        }
+
+        // Handle dimension change with aspect ratio maintenance
+        function handleDimensionChange(e) {
+            if (!state.settings.maintainAspectRatio || state.images.length === 0) return;
+            
+            const currentImage = state.images[state.currentImageIndex];
+            if (!currentImage) return;
+            
+            const aspectRatio = currentImage.originalWidth / currentImage.originalHeight;
+            
+            if (e.target.id === 'widthInput') {
+                // Width changed, update height to maintain aspect ratio
+                const newWidth = parseInt(elements.widthInput.value) || currentImage.originalWidth;
+                const newHeight = Math.round(newWidth / aspectRatio);
+                elements.heightInput.value = newHeight;
+            } else if (e.target.id === 'heightInput') {
+                // Height changed, update width to maintain aspect ratio
+                const newHeight = parseInt(elements.heightInput.value) || currentImage.originalHeight;
+                const newWidth = Math.round(newHeight * aspectRatio);
+                elements.widthInput.value = newWidth;
+            }
+        }
+
+        // Handle maintain aspect ratio change
+        function handleMaintainAspectChange() {
+            state.settings.maintainAspectRatio = elements.maintainAspect.checked;
+        }
+
+        // Handle quality change
+        function handleQualityChange() {
+            state.settings.quality = elements.qualitySelect.value;
+            
+            // Update canvas smoothing quality
+            const ctx = elements.previewCanvas.getContext('2d');
+            ctx.imageSmoothingQuality = state.settings.quality;
+            
+            // Redraw preview with new quality
+            if (state.images.length > 0) {
+                drawPreview();
+            }
+        }
+
+        // Handle format change
+        function handleFormatChange() {
+            state.settings.format = elements.formatSelect.value;
+            toggleJpegQuality();
+        }
+
+        // Toggle JPEG quality slider visibility
+        function toggleJpegQuality() {
+            if (state.settings.format === 'image/jpeg') {
+                elements.jpegQualityGroup.style.display = 'block';
+            } else {
+                elements.jpegQualityGroup.style.display = 'none';
+            }
+        }
+
+        // Handle JPEG quality change
+        function handleJpegQualityChange() {
+            state.settings.jpegQuality = parseFloat(elements.jpegQuality.value);
+            elements.jpegQualityValue.textContent = state.settings.jpegQuality;
+        }
+
+        // Apply resize to current image
+        function applyResize() {
+            if (state.images.length === 0) return;
+            
+            const currentImage = state.images[state.currentImageIndex];
+            const width = parseInt(elements.widthInput.value) || currentImage.originalWidth;
+            const height = parseInt(elements.heightInput.value) || currentImage.originalHeight;
+            
+            // Create a canvas for the resized image
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            
+            // Set image smoothing based on quality
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = state.settings.quality;
+            
+            // Apply transformations before drawing
+            applyTransformationsToContext(ctx, canvas.width, canvas.height);
+            
+            // Draw the image
+            ctx.drawImage(currentImage.original, 0, 0, width, height);
+            
+            // Update the current image with the resized version
+            const resizedImage = new Image();
+            resizedImage.src = canvas.toDataURL(state.settings.format, state.settings.jpegQuality);
+            resizedImage.onload = function() {
+                currentImage.current = resizedImage;
+                drawPreview();
+                updateResultInfo();
+            };
+        }
+
+        // Reset image to original
+        function resetImage() {
+            if (state.images.length === 0) return;
+            
+            const currentImage = state.images[state.currentImageIndex];
+            currentImage.current = currentImage.original;
+            state.transformations = {
+                rotation: 0,
+                flipHorizontal: false,
+                flipVertical: false
+            };
+            
+            // Reset dimension inputs
+            elements.widthInput.value = currentImage.originalWidth;
+            elements.heightInput.value = currentImage.originalHeight;
+            
+            drawPreview();
+            updateResultInfo();
+        }
+
+        // Apply current settings to all images
+        function applyToAll() {
+            if (state.images.length <= 1) return;
+            
+            // Show batch processing UI
+            elements.batchResults.classList.remove('hidden');
+            elements.batchProgress.style.width = '0%';
+            elements.batchProgressText.textContent = `Processing 0 of ${state.images.length}`;
+            elements.batchResultsList.innerHTML = '';
+            
+            // Process each image sequentially
+            let processed = 0;
+            
+            function processNext() {
+                if (processed >= state.images.length) {
+                    // All images processed
+                    elements.batchProgressText.textContent = `Completed ${state.images.length} images`;
+                    return;
+                }
+                
+                // Update progress
+                processed++;
+                const progress = (processed / state.images.length) * 100;
+                elements.batchProgress.style.width = `${progress}%`;
+                elements.batchProgressText.textContent = `Processing ${processed} of ${state.images.length}`;
+                
+                // Apply resize to this image
+                const image = state.images[processed - 1];
+                const width = parseInt(elements.widthInput.value) || image.originalWidth;
+                const height = parseInt(elements.heightInput.value) || image.originalHeight;
+                
+                // Create a canvas for the resized image
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                
+                // Set image smoothing based on quality
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = state.settings.quality;
+                
+                // Apply transformations before drawing
+                applyTransformationsToContext(ctx, canvas.width, canvas.height);
+                
+                // Draw the image
+                ctx.drawImage(image.original, 0, 0, width, height);
+                
+                // Convert to blob for download
+                canvas.toBlob(blob => {
+                    // Create result item
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'batch-result-item';
+                    
+                    // Create thumbnail
+                    const thumb = document.createElement('img');
+                    thumb.className = 'batch-result-thumb';
+                    thumb.src = URL.createObjectURL(blob);
+                    
+                    // Create download button
+                    const downloadBtn = document.createElement('button');
+                    downloadBtn.textContent = 'Download';
+                    downloadBtn.addEventListener('click', () => {
+                        downloadBlob(blob, getOutputFilename(image.name, width, height));
+                    });
+                    
+                    // Create copy button
+                    const copyBtn = document.createElement('button');
+                    copyBtn.textContent = 'Copy';
+                    copyBtn.className = 'secondary';
+                    copyBtn.addEventListener('click', () => {
+                        copyBlobToClipboard(blob);
+                    });
+                    
+                    // Add to result item
+                    resultItem.appendChild(thumb);
+                    resultItem.appendChild(downloadBtn);
+                    resultItem.appendChild(copyBtn);
+                    
+                    // Add to results list
+                    elements.batchResultsList.appendChild(resultItem);
+                    
+                    // Process next image
+                    setTimeout(processNext, 10); // Small delay to prevent UI freezing
+                }, state.settings.format, state.settings.jpegQuality);
+            }
+            
+            // Start processing
+            processNext();
+        }
+
+        // Rotate image by specified degrees
+        function rotateImage(degrees) {
+            state.transformations.rotation += degrees;
+            // Normalize rotation to 0-359 range
+            state.transformations.rotation = state.transformations.rotation % 360;
+            if (state.transformations.rotation < 0) {
+                state.transformations.rotation += 360;
+            }
+            
+            drawPreview();
+        }
+
+        // Apply custom rotation
+        function applyCustomRotate() {
+            const degrees = parseInt(elements.customRotate.value) || 0;
+            rotateImage(degrees);
+            elements.customRotate.value = '';
+        }
+
+        // Flip image horizontally or vertically
+        function flipImage(direction) {
+            if (direction === 'horizontal') {
+                state.transformations.flipHorizontal = !state.transformations.flipHorizontal;
+            } else if (direction === 'vertical') {
+                state.transformations.flipVertical = !state.transformations.flipVertical;
+            }
+            
+            drawPreview();
+        }
+
+        // Apply transformations to canvas context before drawing
+        function applyTransformationsToContext(ctx, width, height) {
+            // Move to center of canvas
+            ctx.translate(width / 2, height / 2);
+            
+            // Apply rotation
+            ctx.rotate(state.transformations.rotation * Math.PI / 180);
+            
+            // Apply flips
+            let scaleX = state.transformations.flipHorizontal ? -1 : 1;
+            let scaleY = state.transformations.flipVertical ? -1 : 1;
+            ctx.scale(scaleX, scaleY);
+            
+            // Move back to top-left corner
+            ctx.translate(-width / 2, -height / 2);
+        }
+
+        // Draw preview on canvas
+        function drawPreview() {
+            if (state.images.length === 0) {
+                elements.noImageMessage.classList.remove('hidden');
+                elements.previewCanvas.style.display = 'none';
+                return;
+            }
+            
+            elements.noImageMessage.classList.add('hidden');
+            elements.previewCanvas.style.display = 'block';
+            
+            const currentImage = state.images[state.currentImageIndex];
+            const canvas = elements.previewCanvas;
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size to match image
+            canvas.width = currentImage.current.width;
+            canvas.height = currentImage.current.height;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Apply transformations
+            applyTransformationsToContext(ctx, canvas.width, canvas.height);
+            
+            // Draw the image
+            ctx.drawImage(currentImage.current, 0, 0, canvas.width, canvas.height);
+            
+            // Update image info
+            updateImageInfo();
+        }
+
+        // Update image information display
+        function updateImageInfo() {
+            if (state.images.length === 0) return;
+            
+            const currentImage = state.images[state.currentImageIndex];
+            elements.originalSize.textContent = `Original: ${currentImage.originalWidth} × ${currentImage.originalHeight}`;
+            elements.previewSize.textContent = `Preview: ${currentImage.current.width} × ${currentImage.current.height}`;
+        }
+
+        // Update result information
+        function updateResultInfo() {
+            if (state.images.length === 0) {
+                elements.resultInfo.classList.add('hidden');
+                return;
+            }
+            
+            elements.resultInfo.classList.remove('hidden');
+            
+            const currentImage = state.images[state.currentImageIndex];
+            elements.resultDimensions.textContent = `Dimensions: ${currentImage.current.width} × ${currentImage.current.height}`;
+            
+            // Estimate file size
+            const canvas = document.createElement('canvas');
+            canvas.width = currentImage.current.width;
+            canvas.height = currentImage.current.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(currentImage.current, 0, 0);
+            
+            const dataUrl = canvas.toDataURL(state.settings.format, state.settings.jpegQuality);
+            const fileSize = Math.round((dataUrl.length * 3) / 4 / 1024); // Approximate KB
+            elements.resultFileSize.textContent = `File Size: ~${fileSize} KB`;
+        }
+
+        // Update thumbnails for batch mode
+        function updateThumbnails() {
+            if (state.images.length <= 1) {
+                elements.batchInfo.classList.add('hidden');
+                elements.applyToAllBtn.classList.add('hidden');
+                return;
+            }
+            
+            elements.batchInfo.classList.remove('hidden');
+            elements.applyToAllBtn.classList.remove('hidden');
+            elements.thumbnailGallery.innerHTML = '';
+            
+            state.images.forEach((image, index) => {
+                const thumb = document.createElement('img');
+                thumb.className = `thumbnail ${index === state.currentImageIndex ? 'active' : ''}`;
+                thumb.src = image.current.src;
+                thumb.alt = `Thumbnail ${index + 1}`;
+                thumb.addEventListener('click', () => {
+                    state.currentImageIndex = index;
+                    updateUI();
+                    drawPreview();
+                });
+                
+                elements.thumbnailGallery.appendChild(thumb);
+            });
+        }
+
+        // Update UI based on current state
+        function updateUI() {
+            if (state.images.length === 0) {
+                // No images
+                elements.noImageMessage.classList.remove('hidden');
+                elements.previewCanvas.style.display = 'none';
+                elements.resultInfo.classList.add('hidden');
+                elements.batchInfo.classList.add('hidden');
+                elements.applyToAllBtn.classList.add('hidden');
+                
+                // Reset dimension inputs
+                elements.widthInput.value = '';
+                elements.heightInput.value = '';
+            } else {
+                // We have images
+                elements.noImageMessage.classList.add('hidden');
+                elements.previewCanvas.style.display = 'block';
+                elements.resultInfo.classList.remove('hidden');
+                
+                const currentImage = state.images[state.currentImageIndex];
+                
+                // Update dimension inputs with current image dimensions
+                if (!elements.widthInput.value) {
+                    elements.widthInput.value = currentImage.originalWidth;
+                    elements.heightInput.value = currentImage.originalHeight;
+                }
+                
+                // Update thumbnails if in batch mode
+                if (state.images.length > 1) {
+                    updateThumbnails();
+                }
+                
+                // Update result info
+                updateResultInfo();
+            }
+        }
+
+        // Download current image
+        function downloadImage() {
+            if (state.images.length === 0) return;
+            
+            const currentImage = state.images[state.currentImageIndex];
+            const canvas = document.createElement('canvas');
+            canvas.width = currentImage.current.width;
+            canvas.height = currentImage.current.height;
+            const ctx = canvas.getContext('2d');
+            
+            // Apply transformations
+            applyTransformationsToContext(ctx, canvas.width, canvas.height);
+            
+            // Draw the image
+            ctx.drawImage(currentImage.current, 0, 0, canvas.width, canvas.height);
+            
+            // Convert to blob and download
+            canvas.toBlob(blob => {
+                downloadBlob(blob, getOutputFilename(currentImage.name, currentImage.current.width, currentImage.current.height));
+            }, state.settings.format, state.settings.jpegQuality);
+        }
+
+        // Copy image to clipboard
+        function copyToClipboard() {
+            if (state.images.length === 0) return;
+            
+            const currentImage = state.images[state.currentImageIndex];
+            const canvas = document.createElement('canvas');
+            canvas.width = currentImage.current.width;
+            canvas.height = currentImage.current.height;
+            const ctx = canvas.getContext('2d');
+            
+            // Apply transformations
+            applyTransformationsToContext(ctx, canvas.width, canvas.height);
+            
+            // Draw the image
+            ctx.drawImage(currentImage.current, 0, 0, canvas.width, canvas.height);
+            
+            // Convert to blob and copy
+            canvas.toBlob(blob => {
+                copyBlobToClipboard(blob);
+            }, state.settings.format, state.settings.jpegQuality);
+        }
+
+        // Open image in new tab
+        function openInNewTab() {
+            if (state.images.length === 0) return;
+            
+            const currentImage = state.images[state.currentImageIndex];
+            const canvas = document.createElement('canvas');
+            canvas.width = currentImage.current.width;
+            canvas.height = currentImage.current.height;
+            const ctx = canvas.getContext('2d');
+            
+            // Apply transformations
+            applyTransformationsToContext(ctx, canvas.width, canvas.height);
+            
+            // Draw the image
+            ctx.drawImage(currentImage.current, 0, 0, canvas.width, canvas.height);
+            
+            // Open data URL in new tab
+            const dataUrl = canvas.toDataURL(state.settings.format, state.settings.jpegQuality);
+            window.open(dataUrl, '_blank');
+        }
+
+        // Use result (custom event and set as background)
+        function useResult() {
+            if (state.images.length === 0) return;
+            
+            const currentImage = state.images[state.currentImageIndex];
+            const canvas = document.createElement('canvas');
+            canvas.width = currentImage.current.width;
+            canvas.height = currentImage.current.height;
+            const ctx = canvas.getContext('2d');
+            
+            // Apply transformations
+            applyTransformationsToContext(ctx, canvas.width, canvas.height);
+            
+            // Draw the image
+            ctx.drawImage(currentImage.current, 0, 0, canvas.width, canvas.height);
+            
+            // Convert to blob
+            canvas.toBlob(blob => {
+                // Create custom event
+                const event = new CustomEvent('imageResizer:result', {
+                    detail: {
+                        blob: blob,
+                        filename: getOutputFilename(currentImage.name, currentImage.current.width, currentImage.current.height),
+                        width: currentImage.current.width,
+                        height: currentImage.current.height,
+                        mime: state.settings.format
+                    }
+                });
+                
+                // Dispatch event
+                document.dispatchEvent(event);
+                
+                // Also set as page background for demonstration
+                const dataUrl = canvas.toDataURL(state.settings.format, state.settings.jpegQuality);
+                document.body.style.backgroundImage = `url(${dataUrl})`;
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+                
+                alert('Result applied! The image has been set as the page background and a custom event was dispatched.');
+            }, state.settings.format, state.settings.jpegQuality);
+        }
+
+        // Helper function to download a blob
+        function downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Helper function to copy a blob to clipboard
+        function copyBlobToClipboard(blob) {
+            navigator.clipboard.write([
+                new ClipboardItem({
+                    [blob.type]: blob
+                })
+            ]).then(() => {
+                alert('Image copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy image: ', err);
+                alert('Failed to copy image to clipboard. Your browser may not support this feature.');
+            });
+        }
+
+        // Helper function to generate output filename
+        function getOutputFilename(originalName, width, height) {
+            const nameWithoutExt = originalName.replace(/\.[^/.]+$/, "");
+            const ext = state.settings.format === 'image/jpeg' ? 'jpg' : 
+                       state.settings.format === 'image/png' ? 'png' : 'webp';
+            return `${nameWithoutExt}_${width}x${height}.${ext}`;
+        }
+
+        // Handle keyboard shortcuts
+        function handleKeyboardShortcuts(e) {
+            // Only handle if no input is focused
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+                return;
+            }
+            
+            // Rotate with R key
+            if (e.key === 'r' || e.key === 'R') {
+                e.preventDefault();
+                rotateImage(90);
+            }
+            
+            // Flip with F key
+            if (e.key === 'f' || e.key === 'F') {
+                e.preventDefault();
+                flipImage('horizontal');
+            }
+            
+            // Download with Ctrl/Cmd + D
+            if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+                e.preventDefault();
+                downloadImage();
+            }
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Example event listener for custom result event (commented out)
+        /*
+        document.addEventListener('imageResizer:result', function(e) {
+            const { blob, filename, width, height, mime } = e.detail;
+            console.log('Image resizer result:', { filename, width, height, mime });
+            
+            // Do something with the result blob
+            // For example, upload to a server:
+            // const formData = new FormData();
+            // formData.append('image', blob, filename);
+            // fetch('/upload', { method: 'POST', body: formData });
+        });
+        */
+    </script>
+</body>
+</html>
