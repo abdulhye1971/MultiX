@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SciCalc Wizardry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f0820;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #E4E4E4;
+            background: linear-gradient(135deg, #24103f, #4b1f7a);
+        }
+        .calculator {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            width: 380px;
+            padding: 15px;
+            transition: all 0.3s ease;
+}
+.calculator:hover {
+            box-shadow: 0 8px 32px rgba(155, 123, 255, 0.2);
+        }
+        .display {
+            background: rgba(15, 8, 32, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 15px;
+            text-align: right;
+            font-size: 22px;
+            min-height: 28px;
+            word-break: break-all;
+            transition: all 0.3s ease;
+        }
+.display:focus-within {
+            border-color: #9B7BFF;
+            box-shadow: 0 0 0 2px rgba(155, 123, 255, 0.3);
+        }
+        .btn {
+            padding: 10px 0;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+.btn-number {
+            background: rgba(255, 255, 255, 0.1);
+            color: #E4E4E4;
+        }
+
+        .btn-number:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-operator {
+            background: linear-gradient(135deg, #9B7BFF, #7B5BFF);
+            color: white;
+        }
+
+        .btn-operator:hover {
+            box-shadow: 0 0 15px rgba(155, 123, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-function {
+            background: rgba(15, 8, 32, 0.7);
+            color: #FFD966;
+        }
+
+        .btn-function:hover {
+            background: rgba(25, 15, 50, 0.7);
+        }
+
+        .btn-memory {
+            background: rgba(255, 217, 102, 0.2);
+            color: #FFD966;
+        }
+
+        .btn-memory:hover {
+            background: rgba(255, 217, 102, 0.3);
+        }
+
+        .btn-equals {
+            background: linear-gradient(135deg, #FFD966, #FFB347);
+            color: #0f0820;
+        }
+
+        .btn-equals:hover {
+            box-shadow: 0 0 15px rgba(255, 217, 102, 0.5);
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .angle-mode {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+.angle-mode label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .accent-text {
+            color: #9B7BFF;
+        }
+
+        .secondary-accent {
+            color: #FFD966;
+        }
+        .history {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            min-height: 16px;
+            margin: 5px 0;
+        }
+</style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display" id="display" contenteditable="true"></div>
+        <div class="history" id="history"></div>
+        
+        <div class="angle-mode">
+            <label>
+                <input type="radio" name="angleMode" value="deg" checked> Degrees
+            </label>
+            <label>
+                <input type="radio" name="angleMode" value="rad"> Radians
+            </label>
+        </div>
+
+        <div class="grid-container">
+            <!-- Row 1: Scientific Functions -->
+            <button class="btn btn-function" onclick="addToDisplay('sin(')">sin</button>
+            <button class="btn btn-function" onclick="addToDisplay('cos(')">cos</button>
+            <button class="btn btn-function" onclick="addToDisplay('tan(')">tan</button>
+            <button class="btn btn-function" onclick="addToDisplay('asin(')">sin⁻¹</button>
+            <button class="btn btn-function" onclick="addToDisplay('acos(')">cos⁻¹</button>
+            
+            <!-- Row 2: Scientific Functions -->
+            <button class="btn btn-function" onclick="addToDisplay('^2')">x²</button>
+            <button class="btn btn-function" onclick="addToDisplay('^3')">x³</button>
+            <button class="btn btn-function" onclick="addToDisplay('^')">xʸ</button>
+            <button class="btn btn-function" onclick="addToDisplay('sqrt(')">√</button>
+            <button class="btn btn-function" onclick="addToDisplay('cbrt(')">³√</button>
+            
+            <!-- Row 3: Scientific Functions -->
+            <button class="btn btn-function" onclick="addToDisplay('exp(')">eˣ</button>
+            <button class="btn btn-function" onclick="addToDisplay('10^')">10ˣ</button>
+            <button class="btn btn-function" onclick="addToDisplay('log(')">log</button>
+            <button class="btn btn-function" onclick="addToDisplay('ln(')">ln</button>
+            <button class="btn btn-function" onclick="addToDisplay('(')">(</button>
+            
+            <!-- Row 4: Scientific Functions -->
+            <button class="btn btn-function" onclick="addToDisplay('π')">π</button>
+            <button class="btn btn-function" onclick="addToDisplay('e')">e</button>
+            <button class="btn btn-function" onclick="addToDisplay('factorial(')">n!</button>
+            <button class="btn btn-function" onclick="addToDisplay('1/(')">1/x</button>
+            <button class="btn btn-function" onclick="addToDisplay(')')">)</button>
+            
+            <!-- Row 5: Memory Functions -->
+            <button class="btn btn-memory" onclick="memoryAdd()">M+</button>
+            <button class="btn btn-memory" onclick="memorySubtract()">M-</button>
+            <button class="btn btn-memory" onclick="memoryRecall()">MR</button>
+            <button class="btn btn-memory" onclick="memoryClear()">MC</button>
+            <button class="btn btn-operator" onclick="addToDisplay('%')">%</button>
+            
+            <!-- Row 6: Basic Operations -->
+            <button class="btn btn-operator" onclick="clearDisplay()">AC</button>
+            <button class="btn btn-operator" onclick="backspace()">⌫</button>
+            <button class="btn btn-operator" onclick="addToDisplay('^')">^</button>
+            <button class="btn btn-operator" onclick="addToDisplay('/')">÷</button>
+            <button class="btn btn-operator" onclick="addToDisplay('*')">×</button>
+            
+            <!-- Row 7: Numbers -->
+            <button class="btn btn-number" onclick="addToDisplay('7')">7</button>
+            <button class="btn btn-number" onclick="addToDisplay('8')">8</button>
+            <button class="btn btn-number" onclick="addToDisplay('9')">9</button>
+            <button class="btn btn-operator" onclick="addToDisplay('-')">-</button>
+            <button class="btn btn-operator" onclick="addToDisplay('+')">+</button>
+            
+            <!-- Row 8: Numbers -->
+            <button class="btn btn-number" onclick="addToDisplay('4')">4</button>
+            <button class="btn btn-number" onclick="addToDisplay('5')">5</button>
+            <button class="btn btn-number" onclick="addToDisplay('6')">6</button>
+            <button class="btn btn-operator" onclick="toggleSign()">±</button>
+            <button class="btn btn-function" onclick="randomNumber()">RND</button>
+            
+            <!-- Row 9: Numbers -->
+            <button class="btn btn-number" onclick="addToDisplay('1')">1</button>
+            <button class="btn btn-number" onclick="addToDisplay('2')">2</button>
+            <button class="btn btn-number" onclick="addToDisplay('3')">3</button>
+            <button class="btn btn-function" onclick="addAns()">ANS</button>
+            <button class="btn btn-equals" onclick="calculate()">=</button>
+            
+            <!-- Row 10: Numbers -->
+            <button class="btn btn-number" onclick="addToDisplay('0')">0</button>
+            <button class="btn btn-number" onclick="addToDisplay('.')">.</button>
+            <button class="btn btn-number" colspan="3"></button>
+        </div>
+    </div>
+
+    <script>
+        feather.replace();
+        
+        let memory = 0;
+        let lastResult = null;
+        let isRadians = false;
+        
+        // Initialize display
+        document.getElementById('display').focus();
+        
+        // Angle mode toggle
+        document.querySelectorAll('input[name="angleMode"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                isRadians = this.value === 'rad';
+            });
+        });
+        
+        // Add to display
+        function addToDisplay(value) {
+            const display = document.getElementById('display');
+            display.textContent += value;
+            display.focus();
+        }
+        
+        // Clear display
+        function clearDisplay() {
+            document.getElementById('display').textContent = '';
+            document.getElementById('history').textContent = '';
+        }
+        
+        // Backspace
+        function backspace() {
+            const display = document.getElementById('display');
+            display.textContent = display.textContent.slice(0, -1);
+        }
+        
+        // Toggle sign
+        function toggleSign() {
+            const display = document.getElementById('display');
+            if (display.textContent.startsWith('-')) {
+                display.textContent = display.textContent.substring(1);
+            } else {
+                display.textContent = '-' + display.textContent;
+            }
+        }
+        
+        // Calculate factorial
+        function factorial(n) {
+            if (n < 0) return NaN;
+            if (n === 0 || n === 1) return 1;
+            let result = 1;
+            for (let i = 2; i <= n; i++) {
+                result *= i;
+            }
+            return result;
+        }
+        
+        // Generate random number
+        function randomNumber() {
+            const randomNum = Math.random().toFixed(10).replace(/\.?0+$/, '');
+            document.getElementById('display').textContent = randomNum;
+        }
+        
+        // Add previous answer
+        function addAns() {
+            if (lastResult !== null) {
+                addToDisplay(lastResult);
+            }
+        }
+        
+        // Memory functions
+        function memoryAdd() {
+            memory += parseFloat(document.getElementById('display').textContent) || 0;
+        }
+        
+        function memorySubtract() {
+            memory -= parseFloat(document.getElementById('display').textContent) || 0;
+        }
+        
+        function memoryRecall() {
+            document.getElementById('display').textContent = memory.toString();
+        }
+        
+        function memoryClear() {
+            memory = 0;
+        }
+        
+        // Main calculation function
+        function calculate() {
+            try {
+                const display = document.getElementById('display');
+                const history = document.getElementById('history');
+                let expression = display.textContent;
+                
+                // Replace special symbols with Math functions
+                expression = expression.replace(/π/g, 'Math.PI');
+                expression = expression.replace(/e(?![0-9])/g, 'Math.E');
+                expression = expression.replace(/\^2/g, '**2');
+                expression = expression.replace(/\^3/g, '**3');
+                expression = expression.replace(/\^/g, '**');
+                expression = expression.replace(/sqrt\(/g, 'Math.sqrt(');
+                expression = expression.replace(/cbrt\(/g, 'Math.cbrt(');
+                expression = expression.replace(/10\^/g, '10**');
+                expression = expression.replace(/ln\(/g, 'Math.log(');
+                expression = expression.replace(/log\(/g, 'Math.log10(');
+                expression = expression.replace(/exp\(/g, 'Math.exp(');
+                expression = expression.replace(/factorial\(/g, 'factorial(');
+                expression = expression.replace(/%/g, '/100');
+                
+                // Handle trigonometry based on angle mode
+                if (isRadians) {
+                    expression = expression.replace(/sin\(/g, 'Math.sin(');
+                    expression = expression.replace(/cos\(/g, 'Math.cos(');
+                    expression = expression.replace(/tan\(/g, 'Math.tan(');
+                    expression = expression.replace(/asin\(/g, 'Math.asin(');
+                    expression = expression.replace(/acos\(/g, 'Math.acos(');
+                    expression = expression.replace(/atan\(/g, 'Math.atan(');
+                } else {
+                    expression = expression.replace(/sin\(/g, 'Math.sin(Math.PI/180*');
+                    expression = expression.replace(/cos\(/g, 'Math.cos(Math.PI/180*');
+                    expression = expression.replace(/tan\(/g, 'Math.tan(Math.PI/180*');
+                    expression = expression.replace(/asin\(/g, '180/Math.PI*Math.asin(');
+                    expression = expression.replace(/acos\(/g, '180/Math.PI*Math.acos(');
+                    expression = expression.replace(/atan\(/g, '180/Math.PI*Math.atan(');
+                }
+                
+                // Evaluate the expression
+                const result = eval(expression);
+                
+                // Format the result (remove trailing .0 if integer)
+                let formattedResult = result.toString();
+                if (formattedResult.includes('.')) {
+                    formattedResult = formattedResult.replace(/\.?0+$/, '');
+                }
+                
+                // Update display and history
+                history.textContent = display.textContent + ' =';
+                display.textContent = formattedResult;
+                lastResult = result;
+                
+            } catch (error) {
+                document.getElementById('display').textContent = 'Error';
+                console.error('Calculation error:', error);
+            }
+        }
+        
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            const key = e.key;
+            const display = document.getElementById('display');
+            
+            if (key >= '0' && key <= '9') {
+                addToDisplay(key);
+            } else if (key === '.') {
+                addToDisplay('.');
+            } else if (key === '+' || key === '-' || key === '*' || key === '/') {
+                addToDisplay(key);
+            } else if (key === '(' || key === ')') {
+                addToDisplay(key);
+            } else if (key === '^') {
+                addToDisplay('^');
+            } else if (key === 'Enter') {
+                e.preventDefault();
+                calculate();
+            } else if (key === 'Escape') {
+                clearDisplay();
+            } else if (key === 'Backspace') {
+                backspace();
+            } else if (key === 'Delete') {
+                clearDisplay();
+            }
+        });
+    </script>
+</body>
+</html>
